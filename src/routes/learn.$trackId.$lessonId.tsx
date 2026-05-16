@@ -50,7 +50,7 @@ export const Route = createFileRoute("/learn/$trackId/$lessonId")({
     <div className="px-4 py-20 text-center">
       <h1 className="text-2xl font-bold">Dars topilmadi</h1>
       <Link to="/learn" className="mt-4 inline-block text-primary hover:underline">
-        <- Treklarga qaytish
+        {"<- Treklarga qaytish"}
       </Link>
     </div>
   ),
