@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useProgress } from "@/lib/progress";
@@ -7,12 +7,12 @@ import {
   findLesson,
   findTrack,
   type Lesson,
-  type LessonStep,
   type Track,
 } from "@/content/lessons";
 import { CommandBlock } from "@/components/command-block";
-import { CyberTerminal, type CyberTerminalHandle } from "@/components/cyber-terminal";
+import { CyberTerminal } from "@/components/cyber-terminal";
 import { GlassCard } from "@/components/glass-card";
+import { createSession, execCommand } from "@/lib/terminal/sim";
 import {
   ArrowLeft,
   ArrowRight,
@@ -69,51 +69,15 @@ function LessonPage() {
   const { t, lang } = useI18n();
   const { user } = useAuth();
   const { isDone, markComplete } = useProgress();
-  const terminalRef = useRef<CyberTerminalHandle>(null);
   const [busy, setBusy] = useState(false);
-  const [practiced, setPracticed] = useState<Set<number>>(new Set());
   const done = isDone(track.id, lesson.id);
   const tt = (uz: string, en: string) => (lang === "uz" ? uz : en);
-
-  const practiceKey = `cyberalsamos.practice.${track.id}.${lesson.id}`;
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const saved = window.localStorage.getItem(practiceKey);
-    if (!saved) {
-      setPracticed(new Set());
-      return;
-    }
-    try {
-      const indexes = JSON.parse(saved) as number[];
-      setPracticed(new Set(indexes.filter((i) => Number.isInteger(i))));
-    } catch {
-      setPracticed(new Set());
-    }
-  }, [practiceKey]);
 
   const idx = track.lessons.findIndex((l) => l.id === lesson.id);
   const prev = track.lessons[idx - 1];
   const next = track.lessons[idx + 1];
-  const practicedCount = practiced.size;
   const commandCount = lesson.steps.length;
-  const practicePct = commandCount ? Math.round((practicedCount / commandCount) * 100) : 100;
-
-  const rememberPracticed = (index: number) => {
-    setPracticed((current) => {
-      const nextSet = new Set(current);
-      nextSet.add(index);
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(practiceKey, JSON.stringify(Array.from(nextSet)));
-      }
-      return nextSet;
-    });
-  };
-
-  const runStep = (step: LessonStep, index: number) => {
-    terminalRef.current?.run(step.command);
-    rememberPracticed(index);
-  };
+  const commandOutputs = getCommandOutputs(lesson);
 
   const onMark = async () => {
     if (!user) return;
@@ -186,17 +150,10 @@ function LessonPage() {
             </div>
             <div className="mt-4">
               <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
-                <span>{tt("Amaliy komandalar", "Practice commands")}</span>
-                <span>
-                  {practicedCount}/{commandCount}
-                </span>
+                <span>{tt("Terminal transcript", "Terminal transcript")}</span>
+                <span>{commandCount} {tt("komanda", "commands")}</span>
               </div>
-              <div className="h-2 overflow-hidden rounded-md bg-background/70">
-                <div
-                  className="h-full rounded-md bg-primary transition-all"
-                  style={{ width: `${practicePct}%` }}
-                />
-              </div>
+              <div className="h-2 rounded-md bg-primary" />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               {user ? (
@@ -278,8 +235,8 @@ function LessonPage() {
               </GlassCard>
             )}
 
-            <GlassCard className="p-5 md:p-6">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <GlassCard className="overflow-hidden p-0">
+              <div className="border-b border-border/50 px-5 py-4 md:px-6">
                 <div>
                   <div className="flex items-center gap-2 text-sm font-semibold">
                     <Terminal className="h-4 w-4 text-primary" />
@@ -287,24 +244,29 @@ function LessonPage() {
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {tt(
-                      "Run tugmasi buyruqni o'ngdagi simulyatorga yuboradi; Copy esa real Kali terminalingiz uchun.",
-                      "Run sends the command to the simulator on the right; Copy is for your real Kali terminal.",
+                      "Har bir komanda real terminal qatoriga o'xshab berilgan. O'ngdagi copy ikonka orqali Kali labingizga ko'chiring.",
+                      "Each command is shown as a real terminal line. Use the copy icon on the right for your Kali lab.",
                     )}
                   </p>
                 </div>
-                <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                  {practicePct}%
-                </span>
               </div>
-              <div className="space-y-3">
+              <div className="bg-[#202637] bg-[radial-gradient(ellipse_at_center,rgba(54,64,86,0.45),transparent_55%)]">
+                <div className="flex items-center justify-between border-b border-white/10 bg-[#1d2230] px-4 py-2 font-mono text-xs text-slate-200">
+                  <div className="flex items-center gap-5">
+                    <span>Session</span>
+                    <span>Actions</span>
+                    <span>Edit</span>
+                    <span>View</span>
+                    <span>Help</span>
+                  </div>
+                  <span className="hidden text-slate-300 sm:inline">kali@kali: ~</span>
+                </div>
                 {lesson.steps.map((step, i) => (
                   <CommandBlock
                     key={`${step.command}-${i}`}
                     command={step.command}
                     comment={step.hint?.[lang]}
-                    expected={expectedToText(step.expect)}
-                    practiced={practiced.has(i)}
-                    onRun={() => runStep(step, i)}
+                    output={commandOutputs[i]}
                   />
                 ))}
               </div>
@@ -347,7 +309,6 @@ function LessonPage() {
             </div>
             <CyberTerminal
               key={lesson.id}
-              ref={terminalRef}
               fs={lesson.fs}
               cwd={lesson.cwd}
             />
@@ -384,7 +345,11 @@ function MetaPill({
   );
 }
 
-function expectedToText(expect: LessonStep["expect"]) {
-  if (!expect) return undefined;
-  return typeof expect === "string" ? expect : expect.source;
+function getCommandOutputs(lesson: Lesson) {
+  let state = createSession({ fs: lesson.fs, cwd: lesson.cwd });
+  return lesson.steps.map((step) => {
+    const result = execCommand(state, step.command);
+    state = result.state;
+    return result.out;
+  });
 }
