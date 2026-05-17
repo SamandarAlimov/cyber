@@ -6,6 +6,7 @@ const dict = {
   uz: {
     nav_home: "Bosh sahifa",
     nav_learn: "O'rganish",
+    nav_skills: "Bilim xaritasi",
     nav_roadmap: "Yo'l xaritasi",
     nav_about: "Biz haqimizda",
     nav_profile: "Profil",
@@ -84,6 +85,7 @@ const dict = {
   en: {
     nav_home: "Home",
     nav_learn: "Learn",
+    nav_skills: "Skills",
     nav_roadmap: "Roadmap",
     nav_about: "About",
     nav_profile: "Profile",

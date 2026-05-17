@@ -37,6 +37,7 @@ export function SiteHeader() {
             <NavLink to="/">{t("nav_home")}</NavLink>
             <NavLink to="/roadmap">{t("nav_roadmap")}</NavLink>
             <NavLink to="/learn">{t("nav_learn")}</NavLink>
+            <NavLink to="/skills">{t("nav_skills")}</NavLink>
             <NavLink to="/about">{t("nav_about")}</NavLink>
           </nav>
 
@@ -101,6 +102,7 @@ export function SiteHeader() {
               <MobileNavLink to="/" onClick={close}>{t("nav_home")}</MobileNavLink>
               <MobileNavLink to="/roadmap" onClick={close}>{t("nav_roadmap")}</MobileNavLink>
               <MobileNavLink to="/learn" onClick={close}>{t("nav_learn")}</MobileNavLink>
+              <MobileNavLink to="/skills" onClick={close}>{t("nav_skills")}</MobileNavLink>
               <MobileNavLink to="/about" onClick={close}>{t("nav_about")}</MobileNavLink>
               <Link
                 to="/learn"

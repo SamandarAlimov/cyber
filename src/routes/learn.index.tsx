@@ -8,6 +8,7 @@ import { ACCENT_COLORS, TRACK_ICONS } from "@/lib/track-icons";
 import {
   ArrowRight,
   BookOpen,
+  BookOpenCheck,
   Clock,
   Compass,
   GraduationCap,
@@ -85,6 +86,13 @@ function LearnIndex() {
                 <Compass className="h-4 w-4 text-primary" />
                 {t("cta_roadmap")}
               </Link>
+              <Link
+                to="/skills"
+                className="glass inline-flex items-center gap-2 rounded-md px-5 py-2.5 text-sm font-semibold hover:border-primary/40"
+              >
+                <BookOpenCheck className="h-4 w-4 text-primary" />
+                {tt("Bilim xaritasi", "Skill matrix")}
+              </Link>
             </div>
           </div>
 
@@ -121,7 +129,7 @@ function LearnIndex() {
           </GlassCard>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <LearningStat
             icon={<ShieldCheck className="h-5 w-5" />}
             title={tt("Etik va qonuniy", "Ethical and legal")}
@@ -136,6 +144,11 @@ function LearnIndex() {
             icon={<LockKeyhole className="h-5 w-5" />}
             title={tt("Progress saqlanadi", "Progress saved")}
             body={tt("Hisobga kirsangiz darslar, streak va profil yangilanadi.", "Sign in to persist lessons, streaks and profile state.")}
+          />
+          <LearningStat
+            icon={<BookOpenCheck className="h-5 w-5" />}
+            title={tt("Bilim xaritasi", "Skill matrix")}
+            body={tt("Ethical hacker mukammal bilishi kerak bo'lgan yo'nalishlar alohida jamlangan.", "The core domains an ethical hacker should master are collected in one place.")}
           />
         </section>
 
