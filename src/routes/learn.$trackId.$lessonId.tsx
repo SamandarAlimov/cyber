@@ -10,7 +10,6 @@ import {
   type Track,
 } from "@/content/lessons";
 import { CommandBlock } from "@/components/command-block";
-import { CyberTerminal } from "@/components/cyber-terminal";
 import { GlassCard } from "@/components/glass-card";
 import { createSession, execCommand } from "@/lib/terminal/sim";
 import {
@@ -182,7 +181,7 @@ function LessonPage() {
           </GlassCard>
         </header>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)]">
+        <div className="mt-6">
           <main className="space-y-5">
             <GlassCard className="p-5 md:p-6">
               <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-primary">
@@ -297,33 +296,6 @@ function LessonPage() {
               )}
             </div>
           </main>
-
-          <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-            <div className="flex items-center gap-2 text-xs">
-              <span className="glass rounded-md px-3 py-1 font-mono text-primary">
-                ● {t("sandbox_sim")}
-              </span>
-              <span className="rounded-md px-3 py-1 font-mono text-muted-foreground/60">
-                ○ {t("sandbox_live")}
-              </span>
-            </div>
-            <CyberTerminal
-              key={lesson.id}
-              fs={lesson.fs}
-              cwd={lesson.cwd}
-            />
-            <GlassCard className="p-4">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {tt("Keyingi qadam", "Next step")}
-              </div>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {tt(
-                  "Simulyatorda natijani ko'ring, keyin shu buyruqlarni o'zingizning Kali Linux labingizda takrorlang.",
-                  "Check the result in the simulator, then repeat the same commands inside your own Kali Linux lab.",
-                )}
-              </p>
-            </GlassCard>
-          </aside>
         </div>
       </div>
     </div>
@@ -350,6 +322,9 @@ function getCommandOutputs(lesson: Lesson) {
   return lesson.steps.map((step) => {
     const result = execCommand(state, step.command);
     state = result.state;
+    if (step.command.trim().startsWith("sudo ") && result.out) {
+      return `[sudo] password for kali:\n${result.out}`;
+    }
     return result.out;
   });
 }
