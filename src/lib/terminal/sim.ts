@@ -214,7 +214,7 @@ export function execCommand(state: SessionState, raw: string): ExecResult {
     systemctl: () => "● fail2ban.service - Fail2Ban Service\n     Loaded: loaded\n     Active: active (running)",
     tcpdump: () => "listening on eth0, link-type EN10MB (Ethernet)\n10:21:04 IP 10.10.10.5.80 > 10.0.2.15.51544: Flags [P.], length 512",
     wireshark: () => "Opening capture.pcap in Wireshark...",
-    airmon-ng: () => {
+    "airmon-ng": () => {
       if (args[0] === "check" && args[1] === "kill") {
         return [
           "Killing these processes:",
